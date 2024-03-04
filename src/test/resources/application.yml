@@ -1,0 +1,25 @@
+openstack:
+  swift:
+    profile: ${spring.profiles.active}
+    domain-id: default
+    auth-host: https://hpc.trendyol.com:5000/v3
+    object-storage-host: https://hpc.trendyol.com:6780
+    username: mdc.productivity
+    password: ScomOpenStack123
+    storage-public-host: https://s3.trendyol.com
+    credential-id: credenti
+    secret: secret
+    project-id: projectId
+    temp-url-keys:
+      - region: region_1
+        key-1: key-1
+        key-2: key-2
+    meta:
+      auth-token-key: X-Auth-Token
+      temp-url-key-header: X-Account-Meta-Temp-URL-Key
+      temp-url-key-header-2: X-Account-Meta-Temp-URL-Key-2
+      swift-base-path: /swift/v1/
+      delimeter: /
+
+
+

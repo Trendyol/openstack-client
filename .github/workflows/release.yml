@@ -1,0 +1,84 @@
+name: release-workflow
+run-name: Release run ${{ github.run_number }}
+on:
+  workflow_dispatch:
+    inputs:
+      releaseversion:
+        description: 'Release version'
+        required: true
+        default: '1.0.0'
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build with Maven
+        run: mvn -B package -Dspring.profiles.active=build --file pom.xml
+
+      - name: Set projects Maven version to GitHub Action GUI set version
+        run: mvn versions:set -Dspring.profiles.active=build "-DnewVersion=${{ github.event.inputs.releaseversion }}"
+
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-package: 'jdk'
+          java-version: '17'
+          server-id: 'ossrh'
+          server-username: OSSRH_USERNAME
+          server-password: OSSRH_PASSWORD
+          gpg-private-key: ${{ secrets.SONARTYPE_GPG_PRIVATE_KEY }}
+          gpg-passphrase: SIGN_KEY_PASS
+          cache: 'maven'
+
+      - name: Build & Deploy
+        run: |
+          # -U force updates just to make sure we are using latest dependencies
+          # -B Batch mode (do not ask for user input), just in case
+          # -P activate profile
+          mvn -U -B clean deploy -Dspring.profiles.active=build -Dgpg.passphrase=${{ secrets.SONARTYPE_GPG_PASSPHRASE }} -P release -s settings.xml
+        env:
+          GPG_KEY: ${{ secrets.SONARTYPE_GPG_PRIVATE_KEY }}
+          SIGN_KEY_PASS: ${{ secrets.SONARTYPE_GPG_PASSPHRASE }}
+          OSSRH_USERNAME: ${{ secrets.SONARTYPE_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.SONARTYPE_PASSWORD }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.releaseversion }}
+          release_name: ${{ github.event.inputs.releaseversion }}
+          body: |
+            Grab the new version from Maven central https://repo1.maven.org/maven2/com/trendyol/openstack-client/${{ github.event.inputs.releaseversion }}/ by using it in your deps:
+
+            ```
+            <dependencies>
+              <dependency>
+                  <groupId>com.trendyol</groupId>
+                  <artifactId>openstack-client</artifactId>
+                  <version>${{ github.event.inputs.releaseversion }}</version>
+              </dependency>
+            </dependencies>
+            ```
+
+            ### Things that changed in this release
+            ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4.0.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}

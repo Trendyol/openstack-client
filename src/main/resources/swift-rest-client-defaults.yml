@@ -1,0 +1,15 @@
+openstack:
+  swift:
+    auth-host: please define
+    object-storage-host: please define
+    storage-public-host: please define
+    meta:
+      auth-token-key: X-Auth-Token
+      temp-url-key-header: X-Account-Meta-Temp-URL-Key
+      temp-url-key-header-2: X-Account-Meta-Temp-URL-Key-2
+      swift-base-path: /swift/v1/
+      delimeter: /
+      set-temp-key-cycle-minutes: 360
+    web-client:
+      connect-timeout-millis: 30000
+      read-timeout-millis: 30000
