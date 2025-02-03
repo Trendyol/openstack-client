@@ -1,3 +1,5 @@
+
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Trendyol/openstack-client/badge)](https://scorecard.dev/viewer/?uri=github.com/Trendyol/openstack-client)
 <div id="top"></div>
 
 <h1 align="center">Openstack Swift Stateless Client</h1>
